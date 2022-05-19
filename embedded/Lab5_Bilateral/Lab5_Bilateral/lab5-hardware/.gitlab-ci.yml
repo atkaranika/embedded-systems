@@ -1,0 +1,43 @@
+stages:
+    - emulation
+    - build
+    - run
+
+before_script:
+  - source /home/xilinx/Vivado/2019.2/settings64.sh
+  - source /opt/xilinx/xrt/setup.sh
+
+variables:
+  GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_RUNNER_SHORT_TOKEN/$GITLAB_USER_LOGIN/$CI_CONCURRENT_ID/$CI_PROJECT_PATH
+
+emulation:
+  stage: emulation
+  tags:
+    - BUILD_FP
+  script:
+    - export XCL_EMULATION_MODE=sw_emu
+    - make check TARGET=sw_emu HOST_ARCH=x86
+
+build:
+  stage: build
+  tags:
+    - BUILD_FP
+  artifacts:
+    name: "$CI_COMMIT_SHORT_SHA-$CI_JOB_STAGE"
+    paths:
+      - ./reports/*
+      - ./xclbin/*
+      - ./kernel_util_synthed.rpt
+    expire_in: 1 yrs
+  script:
+    - make exe
+    - make bin
+
+run:
+  stage: run
+  tags:
+    - FPGA_FP
+  dependencies:
+      - build
+  script:
+    - make run

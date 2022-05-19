@@ -1,0 +1,28 @@
+stages:
+  - build
+  - run
+
+before_script:
+  - source /home/xilinx/Vivado/2019.2/settings64.sh
+  - source /opt/xilinx/xrt/setup.sh
+
+build:
+  stage: build
+  tags:
+    - FPGA_FP
+  artifacts:
+    name: "$CI_COMMIT_SHORT_SHA-$CI_JOB_STAGE"
+    paths:
+      - ./filter
+    expire_in: 1 yrs
+  script:
+    - make exe
+
+run:
+  stage: run
+  tags:
+    - FPGA_FP
+  dependencies:
+      - build
+  script:
+    - make run
